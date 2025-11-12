@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtGame Connect MVP</title>
+    <link rel="stylesheet" href="./assets/css/modern.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        /* 三排导航样式 */
+        .header-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        /* 第一排 - 用户操作 */
+        .nav-row-user {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 24px;
+            background: rgba(255,255,255,0.15);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .user-info {
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .role-badge {
+            background: rgba(255,255,255,0.3);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* 第二排 - 主导航 */
+        .nav-row-main {
+            display: flex;
+            gap: 0;
+            padding: 0 24px;
+            background: rgba(255,255,255,0.1);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* 第三排 - 次级导航 */
+        .nav-row-sub {
+            display: flex;
+            gap: 0;
+            padding: 0 24px;
+            background: rgba(255,255,255,0.05);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .nav-btn.active {
+            color: white;
+            border-bottom-color: white;
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.9);
+            color: #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: white;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+        
+        /* 内容区域 */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+        }
+        
+        .card h2 {
+            margin-bottom: 16px;
+            color: #333;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        /* 活动卡片 */
+        .activity-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: box-shadow 0.3s;
+        }
+        
+        .activity-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .activity-author {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .activity-time {
+            font-size: 0.85rem;
+            color: #999;
+        }
+        
+        .activity-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .activity-content {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        
+        .activity-actions {
+            display: flex;
+            gap: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.3s;
+        }
+        
+        .action-btn:hover {
+            color: #667eea;
+        }
+        
+        .action-btn.liked {
+            color: #e74c3c;
+        }
+        
+        /* 评论区 */
+        .comments-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+        }
+        
+        .comment-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .comment-author {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+        
+        .comment-content {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        
+        .comment-input-area {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .comment-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+        }
+        
+        .modal-close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* 项目卡片 */
+        .project-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 16px;
+            transition: box-shadow 0.3s;
+        }
+        
+        .project-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .project-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .project-desc {
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .project-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 12px;
+        }
+        
+        .project-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* 技能标签 */
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .skill-tag {
+            background: #e8eeff;
+            color: #667eea;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+        
+        /* 状态标签 */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-open {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-in-progress {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-closed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-withdrawn {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-row-user {
+                flex-direction: column;
+                gap: 8px;
+                padding: 12px 16px;
+            }
+            
+            .user-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .nav-row-main,
+            .nav-row-sub {
+                padding: 0 16px;
+            }
+            
+            .nav-btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .main-container {
+                padding: 12px;
+            }
+            
+            .card {
+                padding: 16px;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            
+            .btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Three Navigation Rows -->
+    <header class="header-nav">
+        <!-- Row 1: User Actions -->
+        <div class="nav-row-user">
+            <div class="user-info" style="display:flex;align-items:center;gap:10px;">
+                <img id="userAvatar" src="./assets/images/avatar_32.png" alt="avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span data-i18n="welcome">Welcome, </span>
+                    <strong id="username">User</strong>
+                    <span class="role-badge" id="roleDisplay">Creator</span>
+                </div>
+            </div>
+            
+            <div class="user-actions">
+                <button class="btn btn-secondary btn-small" onclick="switchRole()" data-i18n="switchRole">Switch Role</button>
+                <button class="btn btn-secondary btn-small" onclick="logout()" data-i18n="logout">Logout</button>
+                <button class="btn btn-secondary btn-small" onclick="toggleLanguage()" id="langToggleBtn">中文</button>
+            </div>
+        </div>
+        
+        
+        <!-- Row 2: Main Navigation -->
+        <div class="nav-row-main">
+            <button class="nav-btn active" onclick="switchTab('home')" id="nav-home" data-i18n="home">Home</button>
+            <button class="nav-btn" onclick="switchTab('plaza')" id="nav-plaza" data-i18n="plaza">Plaza</button>
+            <button class="nav-btn" onclick="switchTab('messages')" id="nav-messages" data-i18n="messages">Messages</button>
+            <button class="nav-btn" onclick="switchTab('profile')" id="nav-profile" data-i18n="profile">Profile</button>
+        </div>
+        
+        <!-- Row 3: Secondary Navigation -->
+        <div class="nav-row-sub">
+            <button class="nav-btn" onclick="switchTab('taskmarket')" id="nav-taskmarket" data-i18n="taskMarket">TaskMarket</button>
+            <button class="nav-btn" onclick="switchTab('project')" id="nav-project" data-i18n="project">Project</button>
+            <button class="nav-btn" onclick="switchTab('matching')" id="nav-matching" data-i18n="matching">Matching</button>
+            <button class="nav-btn" onclick="switchTab('workbench')" id="nav-workbench" data-i18n="workBench">WorkBench</button>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <div class="card">
+                <h2 data-i18n="homeTitle">Welcome to ArtGame Connect</h2>
+                <p style="color: #666; line-height: 1.6; margin-bottom: 16px;" data-i18n="homeDesc">
+                    A creative collaboration platform integrating project marketplace, activity plaza, messaging system, personal center, collaboration workbench, and creator matching.
+                </p>
+                <div style="padding: 16px; background: #f0f7ff; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <strong data-i18n="quickStart">Quick Start:</strong>
+                    <ul style="margin-top: 8px; margin-left: 20px; color: #666;">
+                        <li data-i18n="quickStartRow1">Row 1: Home, Plaza, Messages, Profile</li>
+                        <li data-i18n="quickStartRow2">Row 2: TaskMarket, Project, Matching, WorkBench</li>
+                        <li data-i18n="quickStartRow3">Row 3: Creator, Switch Role, Logout, Language</li>
+                        <li data-i18n="quickStartTip">Switch to Requester role to publish projects, switch to Creator role to apply for projects</li>
+                    </ul>
+                </div>
+                <!-- Static carousel card placed on Home page -->
+                <div class="card" style="margin-bottom:16px;">
+                    <h3 style="margin-bottom:12px;">Highlights</h3>
+                    <div class="carousel-container" style="display:flex;align-items:center;gap:12px;">
+                        <button id="carousel-prev" class="btn btn-secondary btn-small" aria-label="Previous">◀</button>
+                        <div class="carousel-track-wrapper" style="overflow:hidden;flex:1;border-radius:8px;">
+                            <div id="carousel-track" style="display:flex;transition:transform 0.35s ease;">
+                                <img src="./assets/images/slide1.png" class="carousel-slide" alt="slide1" style="width:100%;flex:0 0 100%;object-fit:cover;border-radius:8px;">
+                                <img src="./assets/images/slide2.png" class="carousel-slide" alt="slide2" style="width:100%;flex:0 0 100%;object-fit:cover;border-radius:8px;">
+                                <img src="./assets/images/slide3.png" class="carousel-slide" alt="slide3" style="width:100%;flex:0 0 100%;object-fit:cover;border-radius:8px;">
+                                <img src="./assets/images/slide4.png" class="carousel-slide" alt="slide4" style="width:100%;flex:0 0 100%;object-fit:cover;border-radius:8px;">
+                                <img src="./assets/images/slide5.png" class="carousel-slide" alt="slide5" style="width:100%;flex:0 0 100%;object-fit:cover;border-radius:8px;">
+                            </div>
+                        </div>
+                        <button id="carousel-next" class="btn btn-secondary btn-small" aria-label="Next">▶</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Plaza Tab -->
+        <div id="plaza" class="tab-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                    <h2 data-i18n="plazaTitle">Activity Plaza</h2>
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <select id="viewSelect" onchange="loadFeed()">
+                            <option value="all" data-i18n="all">All</option>
+                            <option value="recommend" data-i18n="recommend">Recommend</option>
+                            <option value="following" data-i18n="following">Following</option>
+                        </select>
+                        <select id="sortSelect" onchange="loadFeed()">
+                            <option value="new" data-i18n="newest">Newest</option>
+                            <option value="hot" data-i18n="hottest">Hottest</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="openActivityModal()" data-i18n="newActivity">+ New Activity</button>
+                    </div>
+                </div>
+                <div id="feed-list" class="loading" data-i18n="loadingActivities">Loading activities...</div>
+            </div>
+        </div>
+        
+        <!-- Messages Tab -->
+        <div id="messages" class="tab-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 data-i18n="messagesTitle">Messages</h2>
+                    <button class="btn btn-primary" onclick="openMessageModal()" data-i18n="addNewMessage">Add New Message</button>
+                </div>
+                <div id="messages-list" class="loading" data-i18n="loadingMessages">Loading messages...</div>
+            </div>
+        </div>
+        
+        <!-- Profile Tab -->
+        <div id="profile" class="tab-content">
+            <div class="card">
+                <h2 data-i18n="profileTitle">Profile</h2>
+                <div id="profile-content" class="loading" data-i18n="loadingProfile">Loading profile...</div>
+            </div>
+        </div>
+        
+        <!-- TaskMarket Tab -->
+        <div id="taskmarket" class="tab-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 data-i18n="taskMarketTitle">Task Market</h2>
+                    <button class="btn btn-primary" onclick="openCreateProjectModal()" data-i18n="createProject">Create Project</button>
+                </div>
+                <div id="projects-list" class="loading" data-i18n="loading">Loading...</div>
+            </div>
+        </div>
+        
+        <!-- Project Details Tab -->
+        <div id="project" class="tab-content">
+            <div class="card">
+                <h2 data-i18n="projectDetailsTitle">Project Details</h2>
+                <div id="project-details" class="loading" data-i18n="loading">Loading...</div>
+            </div>
+        </div>
+        
+        <!-- Matching Tab -->
+        <div id="matching" class="tab-content">
+            <div class="card">
+                <h2 data-i18n="matchingTitle">Creator Matching</h2>
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="skillSearchInput" placeholder="Search by skill..." style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%; max-width: 400px;">
+                    <button class="btn btn-primary" onclick="searchCreators()" style="margin-left: 8px;" data-i18n="search">Search</button>
+                </div>
+                <div id="creators-list" class="loading" data-i18n="loading">Loading...</div>
+            </div>
+        </div>
+        
+        <!-- WorkBench Tab -->
+        <div id="workbench" class="tab-content">
+            <div class="card">
+                <h2 data-i18n="workBenchTitle">Work Bench</h2>
+                <div id="workbench-content">
+                    <div id="workbench-project-list"></div>
+                    <div id="workbench-chat" style="display:none;">
+                        <div style="margin-bottom:16px;">
+                            <button class="btn btn-secondary btn-small" onclick="backToProjectList()">← Back to Project List</button>
+                        </div>
+                        <div id="workbench-project-info" style="margin-bottom:20px;"></div>
+                        <div id="workbench-messages" style="max-height:400px;overflow-y:auto;margin-bottom:16px;padding:16px;background:#f9f9f9;border-radius:8px;"></div>
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" id="workbench-message-input" placeholder="Type your message..." style="flex:1;padding:10px;border:1px solid #ddd;border-radius:6px;">
+                            <button class="btn btn-primary" onclick="sendProjectMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Activity Modal -->
+    <div id="activityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="postActivity">Post Activity</h3>
+                <button class="modal-close" onclick="closeActivityModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label data-i18n="activityTitle">Title</label>
+                    <input type="text" id="activityTitle" placeholder="Enter title...">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="activityContent">Content</label>
+                    <textarea id="activityContent" placeholder="What's on your mind?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="activityImage">Image URL (optional)</label>
+                    <input type="text" id="activityImage" placeholder="https://...">
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="closeActivityModal()" data-i18n="cancel">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitActivity()" data-i18n="submit">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Message Modal -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="addNewMessage">Add New Message</h3>
+                <button class="modal-close" onclick="closeMessageModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label data-i18n="messageContent">Message Content</label>
+                    <textarea id="messageContent" placeholder="Enter your message..."></textarea>
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="closeMessageModal()" data-i18n="cancel">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitMessage()" data-i18n="postMessage">Post Message</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Project Modal -->
+    <div id="createProjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="createProject">Create Project</h3>
+                <button class="modal-close" onclick="closeCreateProjectModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label data-i18n="projectTitle">Project Title</label>
+                    <input type="text" id="projectTitle" placeholder="Enter project title...">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="projectDescription">Description</label>
+                    <textarea id="projectDescription" placeholder="Describe your project..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="budget">Budget</label>
+                    <input type="number" id="projectBudget" placeholder="Enter budget...">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="tags">Skills Required</label>
+                    <input type="text" id="projectSkills" placeholder="e.g., Illustration, 3D Modeling">
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="closeCreateProjectModal()" data-i18n="cancel">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitProject()" data-i18n="submit">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="./assets/js/i18n-config.js"></script>
+    
+    <!-- Modular JS Files -->
+    <script src="./assets/js/modules/helpers-module.js"></script>
+    <script src="./assets/js/modules/auth-module.js"></script>
+    <script src="./assets/js/modules/navigation-module.js"></script>
+    <script src="./assets/js/modules/plaza-module.js"></script>
+    <script src="./assets/js/modules/messages-module.js"></script>
+    <script src="./assets/js/modules/projects-module.js"></script>
+    
+    <!-- Main Entry -->
+    <script src="./assets/js/main.js"></script>
+</body>
+</html>
