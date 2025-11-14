@@ -70,7 +70,7 @@ class ProfileAPI {
     }
     
     /**
-     * 获取我的可订阅项目
+     * 获取我的可订阅项目（包含订阅者数量）
      */
     public function getMySubscribableProjects() {
         $userId = $_SESSION['user_id'] ?? null;

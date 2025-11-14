@@ -204,7 +204,7 @@ try {
         
         case 'withdraw_project':
             $data = json_decode(file_get_contents('php://input'), true);
-            echo json_encode($profileAPI->withdrawProject($data));
+            echo json_encode($projectsAPI->withdrawProject($data));
             break;
         
         case 'submit_project_review':

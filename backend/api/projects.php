@@ -76,4 +76,40 @@ class ProjectsAPI {
         
         return ['code' => 200, 'subscriptions' => $subscriptions];
     }
+
+    public function withdrawProject($data) {
+        $userId = $_SESSION['user_id'] ?? null;
+        
+        if (!$userId) {
+            throw new Exception('未登录 Not logged in');
+        }
+        
+        $projectId = intval($data['project_id'] ?? 0);
+        
+        if ($projectId <= 0) {
+            throw new Exception('无效的项目ID Invalid project ID');
+        }
+        
+        // 获取项目
+        $stmt = $this->pdo->prepare("SELECT * FROM t_collaboration_projects WHERE id = ?");
+        $stmt->execute([$projectId]);
+        $project = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$project) {
+            throw new Exception('项目不存在 Project not found');
+        }
+        
+        if ($project['requester_id'] != $userId) {
+            throw new Exception('只有需求方可以撤回项目 Only the requester can withdraw the project');
+        }
+        
+        if ($project['status'] !== 'open') {
+            throw new Exception('只能撤回开放状态的项目 Can only withdraw open projects');
+        }
+        
+        $stmt = $this->pdo->prepare("UPDATE t_collaboration_projects SET withdrawn = 1, withdrawn_at = CURRENT_TIMESTAMP, status = 'withdrawn' WHERE id = ?");
+        $stmt->execute([$projectId]);
+        
+        return ['code' => 200, 'message' => '项目撤回成功 Project withdrawn successfully'];
+    }
 }

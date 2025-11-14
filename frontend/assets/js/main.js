@@ -66,6 +66,25 @@ window.addSkill = addSkill;
 window.searchCreators = searchCreators;
 window.loadMyProjects = loadMyProjects;
 
+// 工作台相关
+window.loadWorkBench = loadWorkBench;
+window.openWorkbenchProject = openWorkbenchProject;
+window.backToProjectList = backToProjectList;
+window.sendProjectMessage = sendProjectMessage;
+window.openMilestoneDetail = openMilestoneDetail;
+window.approveMilestone = approveMilestone;
+window.requestRevision = requestRevision;
+window.closeMilestoneDetailModal = closeMilestoneDetailModal;
+window.openFileUploadModal = openFileUploadModal;
+window.closeFileUploadModal = closeFileUploadModal;
+window.submitFiles = submitFiles;
+window.submitMilestoneForReview = submitMilestoneForReview;
+window.requestPlatformIntervention = requestPlatformIntervention;
+window.openProjectReviewModal = openProjectReviewModal;
+window.closeProjectReviewModal = closeProjectReviewModal;
+window.setRating = setRating;
+window.submitProjectReview = submitProjectReview;
+
 // 工具函数
 window.escapeHtml = escapeHtml;
 window.initCarousel = initCarousel;

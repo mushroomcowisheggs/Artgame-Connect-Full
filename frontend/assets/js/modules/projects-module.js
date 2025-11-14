@@ -90,6 +90,10 @@ async function loadProjectDetail() {
             const tags = project.tags ? project.tags.split(',').map(t => t.trim()).filter(t => t) : [];
             
             let html = `
+                <div class="project-detail-nav" style="margin-bottom:16px;display:flex;gap:8px;">
+                    <button class="btn btn-secondary btn-small" onclick="switchTab('taskmarket')" data-i18n="backToTaskMarket">← ${t('backToTaskMarket')}</button>
+                    <button class="btn btn-secondary btn-small" onclick="switchTab('workbench')" data-i18n="backToWorkbench">← ${t('backToWorkbench')}</button>
+                </div>
                 <div class="project-detail-header">
                     <h2>${escapeHtml(project.title)}</h2>
                     <span class="status-badge ${statusClass}">${statusText}</span>

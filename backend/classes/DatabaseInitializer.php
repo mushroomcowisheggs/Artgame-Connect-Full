@@ -26,6 +26,8 @@ class DatabaseInitializer {
         $this->createCollaborationMessagesTable();
         $this->createRatingsTable();
         $this->createCommentsTable();
+        $this->createSubscribableProjectsTable();
+        $this->createProjectSubscriptionsTable();
     }
     
     /**
@@ -160,6 +162,21 @@ class DatabaseInitializer {
             FOREIGN KEY(requester_id) REFERENCES t_users(id),
             FOREIGN KEY(creator_id) REFERENCES t_users(id)
         )");
+        
+        // 添加 withdrawn 和 withdrawn_at 字段
+        $cols = $this->pdo->query("PRAGMA table_info(t_collaboration_projects)")->fetchAll(PDO::FETCH_ASSOC);
+        $hasWithdrawn = false;
+        $hasWithdrawnAt = false;
+        foreach ($cols as $c) {
+            if ($c['name'] === 'withdrawn') $hasWithdrawn = true;
+            if ($c['name'] === 'withdrawn_at') $hasWithdrawnAt = true;
+        }
+        if (!$hasWithdrawn) {
+            $this->pdo->exec("ALTER TABLE t_collaboration_projects ADD COLUMN withdrawn INTEGER DEFAULT 0");
+        }
+        if (!$hasWithdrawnAt) {
+            $this->pdo->exec("ALTER TABLE t_collaboration_projects ADD COLUMN withdrawn_at TIMESTAMP DEFAULT NULL");
+        }
     }
     
     /**
@@ -226,12 +243,39 @@ class DatabaseInitializer {
         )");
     }
     
+    private function createSubscribableProjectsTable() {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS t_subscribable_projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            creator_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            price REAL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(creator_id) REFERENCES t_users(id)
+        )");
+    }
+
+    private function createProjectSubscriptionsTable() {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS t_project_subscriptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER NOT NULL,
+            subscriber_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(project_id) REFERENCES t_subscribable_projects(id),
+            FOREIGN KEY(subscriber_id) REFERENCES t_users(id)
+        )");
+    }
+
     /**
      * 插入初始示例数据
      */
     public function insertSampleData() {
         $this->insertSampleProjects();
         $this->insertSampleUsers();
+        $this->insertSampleUser1();
+        $this->insertSampleUser2();
+        $this->insertSampleUser3();
+        $this->insertSampleUser4();
         $this->insertSampleMessages();
         $this->insertSampleActivities();
     }
@@ -246,13 +290,61 @@ class DatabaseInitializer {
     }
     
     private function insertSampleUsers() {
-        $count = $this->pdo->query("SELECT COUNT(*) FROM t_users")->fetchColumn();
+        // Check if demo_user exists instead of checking if table is empty
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM t_users WHERE username = ?");
+        $stmt->execute(['demo_user']);
+        $count = $stmt->fetchColumn();
+        
         if ($count == 0) {
             $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, reputation_score, badges) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute(['demo_user', 'demo@example.com', password_hash('demo123', PASSWORD_DEFAULT), 12.5, json_encode(['starter','contributor'])]);
         }
     }
     
+    private function insertSampleUser1() {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM t_users WHERE username = ?");
+        $stmt->execute(['Alice']);
+        $count = $stmt->fetchColumn();
+        
+        if ($count == 0) {
+            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, reputation_score, badges) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute(['Alice', 'alice@example.com', password_hash('demo123', PASSWORD_DEFAULT), 12.5, json_encode(['starter','contributor'])]);
+        }
+    }
+
+    private function insertSampleUser2() {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM t_users WHERE username = ?");
+        $stmt->execute(['Bob']);
+        $count = $stmt->fetchColumn();
+        
+        if ($count == 0) {
+            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, reputation_score, badges) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute(['Bob', 'bob@example.com', password_hash('demo123', PASSWORD_DEFAULT), 12.5, json_encode(['starter','contributor'])]);
+        }
+    }
+
+    private function insertSampleUser3() {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM t_users WHERE username = ?");
+        $stmt->execute(['Charlie']);
+        $count = $stmt->fetchColumn();
+        
+        if ($count == 0) {
+            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, reputation_score, badges) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute(['Charlie', 'charlie@example.com', password_hash('demo123', PASSWORD_DEFAULT), 12.5, json_encode(['starter','contributor'])]);
+        }
+    }
+
+    private function insertSampleUser4() {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM t_users WHERE username = ?");
+        $stmt->execute(['Diana']);
+        $count = $stmt->fetchColumn();
+        
+        if ($count == 0) {
+            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, reputation_score, badges) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute(['Diana', 'diana@example.com', password_hash('demo123', PASSWORD_DEFAULT), 12.5, json_encode(['starter','contributor'])]);
+        }
+    }
+
     private function insertSampleMessages() {
         $count = $this->pdo->query("SELECT COUNT(*) FROM t_messages")->fetchColumn();
         if ($count == 0) {

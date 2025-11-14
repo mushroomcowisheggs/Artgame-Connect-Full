@@ -38,7 +38,7 @@ async function initAuthFromServer() {
         if (avatarEl) {
             avatarEl.src = currentUser.avatar && currentUser.avatar.trim() 
                 ? currentUser.avatar 
-                : './assets/images/avatar.png';
+                : './assets/images/avatar_32.png';
         }
     } catch (e) { /* ignore if element not present */ }
     
