@@ -22,7 +22,7 @@ class AuthAPI {
             throw new Exception('邮箱和密码不能为空 Email and password cannot be empty');
         }
         
-        $stmt = $this->pdo->prepare("SELECT id, username, email, password, reputation_score, badges, user_role, skills FROM t_users WHERE email = ?");
+        $stmt = $this->pdo->prepare("SELECT id, username, email, password, user_role, is_admin, has_received_auto_like FROM t_users WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -34,6 +34,7 @@ class AuthAPI {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
         $_SESSION['user_role'] = $user['user_role'];
+        $_SESSION['is_admin'] = $user['is_admin'] ?? 0;
         
         unset($user['password']);
         return ['code' => 200, 'message' => '登录成功 Login successful', 'user' => $user];
@@ -100,7 +101,7 @@ class AuthAPI {
             return ['code' => 401, 'message' => '未登录 Not logged in'];
         }
         
-        $stmt = $this->pdo->prepare("SELECT id, username, email, reputation_score, badges, created_at FROM t_users WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT id, username, email, created_at, is_admin, has_received_auto_like FROM t_users WHERE id = ?");
         $stmt->execute([(int)$sessionUserId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         

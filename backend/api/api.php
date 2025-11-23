@@ -31,7 +31,11 @@ $activitiesAPI = new ActivitiesAPI($pdo);
 $authAPI = new AuthAPI($pdo);
 $collaborationAPI = new CollaborationAPI($pdo);
 $profileAPI = new ProfileAPI($pdo);
-$fileUploader = new FileUploader();
+$fileUploader = new FileUploader(
+    null,
+    ['image/png','image/jpeg','image/jpg','image/gif','image/webp','application/pdf','text/plain'],
+    20971520 // 20MB
+);
 
 // 5. 路由处理
 $action = $_GET['action'] ?? '';
@@ -79,6 +83,11 @@ try {
             echo json_encode($projectsAPI->addProject($data));
             break;
         
+        case 'delete_project':
+            $data = json_decode(file_get_contents('php://input'), true);
+            echo json_encode($projectsAPI->deleteProject($data));
+            break;
+        
         case 'subscribe':
             $data = json_decode(file_get_contents('php://input'), true);
             echo json_encode($projectsAPI->subscribeProject($data));
@@ -117,6 +126,11 @@ try {
         case 'add_comment':
             $data = json_decode(file_get_contents('php://input'), true);
             echo json_encode($activitiesAPI->addComment($data));
+            break;
+        
+        case 'delete_comment':
+            $data = json_decode(file_get_contents('php://input'), true);
+            echo json_encode($activitiesAPI->deleteComment($data));
             break;
         
         // ===== 用户认证 Authentication =====
@@ -168,10 +182,15 @@ try {
             echo json_encode($collaborationAPI->addCollaborationMessage($data));
             break;
         
-        case 'update_milestone_status':
-            $data = json_decode(file_get_contents('php://input'), true);
-            echo json_encode($collaborationAPI->updateMilestoneStatus($data));
-            break;
+	        case 'update_milestone_status':
+	            $data = json_decode(file_get_contents('php://input'), true);
+	            echo json_encode($collaborationAPI->updateMilestoneStatus($data));
+	            break;
+	        
+	        case 'get_milestones':
+	            $projectId = intval($_GET['project_id'] ?? 0);
+	            echo json_encode($collaborationAPI->getMilestones($projectId));
+	            break;
         
         case 'get_matching_creators':
             $skillTag = trim($_GET['tags'] ?? '');
@@ -212,11 +231,88 @@ try {
             echo json_encode($profileAPI->submitProjectReview($data));
             break;
         
+        case 'get_personal_projects':
+            echo json_encode($profileAPI->getPersonalProjects());
+            break;
+        
+        case 'add_personal_project':
+            $data = json_decode(file_get_contents('php://input'), true);
+            echo json_encode($profileAPI->addPersonalProject($data));
+            break;
+        
+        case 'delete_personal_project':
+            $data = json_decode(file_get_contents('php://input'), true);
+            echo json_encode($profileAPI->deletePersonalProject($data));
+            break;
+        
+        // ===== 自动点赞 Auto Likes =====
+        case 'process_auto_likes':
+            // 处理待执行的自动点赞任务
+            $stmt = $pdo->query("
+                SELECT al.id, al.activity_id 
+                FROM t_auto_likes al
+                WHERE al.created_at <= datetime('now', '-2 seconds')
+                AND NOT EXISTS (
+                    SELECT 1 FROM t_likes 
+                    WHERE activity_id = al.activity_id 
+                    AND user_id = 0
+                )
+                LIMIT 10
+            ");
+            $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($tasks as $task) {
+                // 添加2个点赞（使用系统账户 user_id=0）
+                for ($i = 0; $i < 2; $i++) {
+                    try {
+                        $pdo->prepare("INSERT OR IGNORE INTO t_likes (activity_id, user_id) VALUES (?, ?)") 
+                            ->execute([$task['activity_id'], 0]);
+                    } catch (Exception $e) {
+                        // 忽略重复插入错误
+                    }
+                }
+                // 更新点赞数
+                $pdo->prepare("UPDATE t_activities SET like_count = like_count + 2 WHERE id = ?")
+                    ->execute([$task['activity_id']]);
+                // 删除任务
+                $pdo->prepare("DELETE FROM t_auto_likes WHERE id = ?")->execute([$task['id']]);
+            }
+            
+            echo json_encode(['code' => 200, 'processed' => count($tasks)]);
+            break;
+        
         // ===== 文件上传 File Upload =====
         case 'upload':
             try {
+                $userId = $_SESSION['user_id'] ?? null;
+                if (!$userId) {
+                    throw new Exception('请先登录 Please login first');
+                }
+                $milestoneId = isset($_POST['milestone_id']) ? intval($_POST['milestone_id']) : null;
+                if ($milestoneId) {
+                    $check = $pdo->prepare("SELECT COUNT(*) FROM t_milestones WHERE id = ?");
+                    $check->execute([$milestoneId]);
+                    if ($check->fetchColumn() == 0) {
+                        $milestoneId = null; // 不存在则忽略
+                    }
+                }
+                // Daily limit check (10 files per user per day)
+                $stmt = $pdo->prepare("SELECT COUNT(*) FROM t_uploads WHERE user_id = ? AND date(created_at) = date('now')");
+                $stmt->execute([$userId]);
+                $countToday = (int)$stmt->fetchColumn();
+                if ($countToday >= 10) {
+                    throw new Exception('已达到今天上传上限 Daily upload limit reached (10)');
+                }
+                // Perform upload
                 $filePath = $fileUploader->upload('file');
-                echo json_encode(['code' => 200, 'message' => '上传成功 Upload successful', 'path' => $filePath]);
+                $originalName = $_FILES['file']['name'] ?? '';
+                $storedName = basename($filePath);
+                $mimeType = $_FILES['file']['type'] ?? '';
+                $size = $_FILES['file']['size'] ?? 0;
+                // Record metadata
+                $stmt = $pdo->prepare("INSERT INTO t_uploads (user_id, milestone_id, original_name, stored_name, path, mime_type, size) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$userId, $milestoneId, $originalName, $storedName, $filePath, $mimeType, $size]);
+                echo json_encode(['code' => 200, 'message' => '上传成功 Upload successful', 'path' => $filePath, 'original' => $originalName, 'milestone_id' => $milestoneId]);
             } catch (Exception $e) {
                 echo json_encode(['code' => 400, 'message' => $e->getMessage()]);
             }

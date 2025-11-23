@@ -30,7 +30,13 @@ async function initAuthFromServer() {
     }
 
     // 初始化 UI
-    document.getElementById('username').textContent = currentUser.username;
+    const usernameEl = document.getElementById('username');
+    usernameEl.textContent = currentUser.username;
+    
+    // 添加管理员徽章
+    if (currentUser.is_admin == 1) {
+        usernameEl.innerHTML = currentUser.username + ' <span style="background:#e74c3c;color:#fff;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:4px;">🔑 ADMIN</span>';
+    }
     
     // 设置头像
     try {
@@ -102,6 +108,7 @@ function toggleLanguage() {
     const newLang = currentLang === 'en' ? 'zh' : 'en';
     setCurrentLanguage(newLang);
     document.getElementById('langToggleBtn').textContent = newLang === 'en' ? '中文' : 'EN';
+    document.getElementById('sidebar-lang-btn').textContent = newLang === 'en' ? '中文' : 'EN';
     updatePageLanguage();
     // 重新加载当前标签页
     if (typeof switchTab === 'function' && typeof currentTab !== 'undefined') {

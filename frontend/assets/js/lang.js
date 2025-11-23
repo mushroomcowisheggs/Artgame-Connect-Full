@@ -176,6 +176,8 @@ function applyTranslations() {
         'authSubtitle': { type: 'text', key: 'authSubtitle' },
         'loginHeader': { type: 'text', key: 'signIn' },
         'registerHeader': { type: 'text', key: 'signUp' },
+        'loginTab': { type: 'text', key: 'signIn' },
+        'registerTab': { type: 'text', key: 'signUp' },
         'loginEmailLabel': { type: 'text', key: 'email' },
         'loginPasswordLabel': { type: 'text', key: 'password' },
         'loginBtn': { type: 'text', key: 'signIn' },
@@ -243,10 +245,15 @@ function applyTranslations() {
         }
     }
     
-    // Update language toggle button text
+    // Update language toggle buttons text
     const langToggleBtn = document.getElementById('langToggleBtn');
+    const sidebarLangBtn = document.getElementById('sidebar-lang-btn');
+    
     if (langToggleBtn) {
         langToggleBtn.textContent = currentLang === 'en' ? '中文' : 'English';
+    }
+    if (sidebarLangBtn) {
+        sidebarLangBtn.textContent = currentLang === 'en' ? '中文' : 'English';
     }
 }
 

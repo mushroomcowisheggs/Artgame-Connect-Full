@@ -40,11 +40,32 @@ class FileUploader {
             throw new Exception('文件太大 File too large (max ' . ($this->maxFileSize / 1024 / 1024) . 'MB)');
         }
         
-        // 检查文件类型
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $file['tmp_name']);
-        finfo_close($finfo);
-        
+        // 检查文件类型（在某些环境 fileinfo 扩展可能未启用）
+        $mimeType = null;
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+        } elseif (function_exists('mime_content_type')) {
+            $mimeType = mime_content_type($file['tmp_name']);
+        }
+        if (!$mimeType) {
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $map = [
+                'png' => 'image/png',
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'gif' => 'image/gif',
+                'webp' => 'image/webp',
+                'pdf' => 'application/pdf',
+                'txt' => 'text/plain'
+            ];
+            if (isset($map[$ext])) {
+                $mimeType = $map[$ext];
+            } else {
+                $mimeType = $_FILES[$fileKey]['type'] ?? 'application/octet-stream';
+            }
+        }
         if (!in_array($mimeType, $this->allowedTypes)) {
             throw new Exception('不支持的文件类型 Unsupported file type: ' . $mimeType);
         }

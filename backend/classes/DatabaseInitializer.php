@@ -28,6 +28,10 @@ class DatabaseInitializer {
         $this->createCommentsTable();
         $this->createSubscribableProjectsTable();
         $this->createProjectSubscriptionsTable();
+        $this->createPersonalProjectsTable();
+        $this->createAutoLikesTable();
+        $this->createProjectPartsTable();
+        $this->createUploadsTable();
     }
     
     /**
@@ -44,15 +48,21 @@ class DatabaseInitializer {
         $cols = $this->pdo->query("PRAGMA table_info(t_messages)")->fetchAll(PDO::FETCH_ASSOC);
         $hasAuthor = false;
         $hasAuthorId = false;
+        $hasCategory = false;
         foreach ($cols as $c) {
             if ($c['name'] === 'col_author') $hasAuthor = true;
             if ($c['name'] === 'col_author_id') $hasAuthorId = true;
+            if ($c['name'] === 'col_category') $hasCategory = true;
         }
         if (!$hasAuthor) {
             $this->pdo->exec("ALTER TABLE t_messages ADD COLUMN col_author TEXT DEFAULT '匿名'");
         }
         if (!$hasAuthorId) {
             $this->pdo->exec("ALTER TABLE t_messages ADD COLUMN col_author_id INTEGER DEFAULT NULL");
+        }
+        // 添加分类字段（创作领域）
+        if (!$hasCategory) {
+            $this->pdo->exec("ALTER TABLE t_messages ADD COLUMN col_category TEXT DEFAULT 'general'");
         }
     }
     
@@ -132,17 +142,61 @@ class DatabaseInitializer {
      * 创建用户表
      */
     private function createUsersTable() {
-        $this->pdo->exec("CREATE TABLE IF NOT EXISTS t_users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE,
-            email TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL,
-            reputation_score REAL DEFAULT 0,
-            badges TEXT,
-            user_role TEXT DEFAULT 'creator',
-            skills TEXT DEFAULT '',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )");
+	        $this->pdo->exec("CREATE TABLE IF NOT EXISTS t_users (
+	            id INTEGER PRIMARY KEY AUTOINCREMENT,
+	            username TEXT NOT NULL UNIQUE,
+	            email TEXT UNIQUE,
+	            password TEXT NOT NULL,
+	            user_role TEXT DEFAULT 'creator',
+	            avatar TEXT,
+	            bio TEXT,
+	            skills TEXT,
+	            reputation_score INTEGER DEFAULT 0,
+	            is_admin INTEGER DEFAULT 0,
+	            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	        )");
+        
+	        // 添加 email 字段
+	        $cols = $this->pdo->query("PRAGMA table_info(t_users)")->fetchAll(PDO::FETCH_ASSOC);
+	        $hasEmail = false;
+	        foreach ($cols as $c) {
+	            if ($c['name'] === 'email') $hasEmail = true;
+	        }
+	        if (!$hasEmail) {
+	            // SQLite 不支持在 ALTER TABLE ADD COLUMN 時添加 UNIQUE 限制
+	            $this->pdo->exec("ALTER TABLE t_users ADD COLUMN email TEXT");
+	            // 由於 email 字段在 CREATE TABLE 時已經有 UNIQUE 限制，這裡不再重複添加
+	        }
+	        
+	        // 添加 has_received_auto_like 字段
+	        $cols = $this->pdo->query("PRAGMA table_info(t_users)")->fetchAll(PDO::FETCH_ASSOC);
+	        $hasAutoLikeField = false;
+	        foreach ($cols as $c) {
+	            if ($c['name'] === 'has_received_auto_like') $hasAutoLikeField = true;
+	        }
+	        if (!$hasAutoLikeField) {
+	            $this->pdo->exec("ALTER TABLE t_users ADD COLUMN has_received_auto_like INTEGER DEFAULT 0");
+	        }
+	        
+	        // 添加 is_admin 字段
+	        $cols = $this->pdo->query("PRAGMA table_info(t_users)")->fetchAll(PDO::FETCH_ASSOC);
+	        $hasIsAdmin = false;
+	        foreach ($cols as $c) {
+	            if ($c['name'] === 'is_admin') $hasIsAdmin = true;
+	        }
+	        if (!$hasIsAdmin) {
+	            $this->pdo->exec("ALTER TABLE t_users ADD COLUMN is_admin INTEGER DEFAULT 0");
+	        }
+
+			// 添加 reputation_score 字段
+			$cols = $this->pdo->query("PRAGMA table_info(t_users)")->fetchAll(PDO::FETCH_ASSOC);
+			$hasReputationScore = false;
+			foreach ($cols as $c) {
+				if ($c['name'] === 'reputation_score') $hasReputationScore = true;
+			}
+			if (!$hasReputationScore) {
+				$this->pdo->exec("ALTER TABLE t_users ADD COLUMN reputation_score INTEGER DEFAULT 0");
+			}
     }
     
     /**
@@ -151,6 +205,7 @@ class DatabaseInitializer {
     private function createCollaborationProjectsTable() {
         $this->pdo->exec("CREATE TABLE IF NOT EXISTS t_collaboration_projects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER NOT NULL,
             title TEXT NOT NULL,
             description TEXT,
             budget REAL,
@@ -160,8 +215,19 @@ class DatabaseInitializer {
             status TEXT DEFAULT 'open',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(requester_id) REFERENCES t_users(id),
-            FOREIGN KEY(creator_id) REFERENCES t_users(id)
+            FOREIGN KEY(creator_id) REFERENCES t_users(id),
+            FOREIGN KEY(project_id) REFERENCES t_projects(id)
         )");
+        
+        // 添加 time_limit 字段
+        $cols = $this->pdo->query("PRAGMA table_info(t_collaboration_projects)")->fetchAll(PDO::FETCH_ASSOC);
+        $hasTimeLimit = false;
+        foreach ($cols as $c) {
+            if ($c['name'] === 'time_limit') $hasTimeLimit = true;
+        }
+        if (!$hasTimeLimit) {
+            $this->pdo->exec("ALTER TABLE t_collaboration_projects ADD COLUMN time_limit INTEGER DEFAULT 30");
+        }
         
         // 添加 withdrawn 和 withdrawn_at 字段
         $cols = $this->pdo->query("PRAGMA table_info(t_collaboration_projects)")->fetchAll(PDO::FETCH_ASSOC);
@@ -267,11 +333,77 @@ class DatabaseInitializer {
     }
 
     /**
+     * 创建个人项目表（Profile中的独立项目）
+     */
+    private function createPersonalProjectsTable() {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS t_personal_projects (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            image TEXT,
+            link TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES t_users(id)
+        )");
+    }
+    
+    /**
+     * 创建自动点赞记录表
+     */
+    private function createAutoLikesTable() {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS t_auto_likes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            activity_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES t_users(id),
+            FOREIGN KEY(activity_id) REFERENCES t_activities(id)
+        )");
+    }
+    
+    /**
+     * 创建项目部分配置表
+     */
+    private function createProjectPartsTable() {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS t_project_parts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id INTEGER NOT NULL,
+            part_number INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            percentage REAL NOT NULL,
+            status TEXT DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(project_id) REFERENCES t_collaboration_projects(id)
+        )");
+    }
+
+    /**
+     * 创建上传文件记录表
+     */
+    private function createUploadsTable() {
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS t_uploads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            milestone_id INTEGER,
+            original_name TEXT NOT NULL,
+            stored_name TEXT NOT NULL,
+            path TEXT NOT NULL,
+            mime_type TEXT,
+            size INTEGER,
+            receiver_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES t_users(id)
+        )");
+    }
+    
+    /**
      * 插入初始示例数据
      */
     public function insertSampleData() {
         $this->insertSampleProjects();
         $this->insertSampleUsers();
+        $this->insertAdminUser();
         $this->insertSampleUser1();
         $this->insertSampleUser2();
         $this->insertSampleUser3();
@@ -295,9 +427,39 @@ class DatabaseInitializer {
         $stmt->execute(['demo_user']);
         $count = $stmt->fetchColumn();
         
+	        if ($count == 0) {
+	            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password) VALUES (?, ?, ?)");
+	            $stmt->execute(['demo_user', 'demo@example.com', password_hash('demo123', PASSWORD_DEFAULT)]);
+	        }
+    }
+    
+    private function insertAdminUser() {
+        // 检查管理员账户是否存在
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM t_users WHERE username = ?");
+        $stmt->execute(['admin']);
+        $count = $stmt->fetchColumn();
+
+        // 默认账号
+        $admin_email = 'admin@artgame.com';
+        $admin_password = 'Admin@123';
+
+        // 从配置文件读取
+        $config_path = __DIR__ . '/../config/admin_account.env';
+        if (file_exists($config_path)) {
+            $lines = file($config_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines as $line) {
+                if (strpos($line, 'admin_email=') === 0) {
+                    $admin_email = trim(substr($line, strlen('admin_email=')));
+                }
+                if (strpos($line, 'admin_password=') === 0) {
+                    $admin_password = trim(substr($line, strlen('admin_password=')));
+                }
+            }
+        }
+
         if ($count == 0) {
-            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, reputation_score, badges) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute(['demo_user', 'demo@example.com', password_hash('demo123', PASSWORD_DEFAULT), 12.5, json_encode(['starter','contributor'])]);
+            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, is_admin) VALUES (?, ?, ?, ?)");
+            $stmt->execute(['admin', $admin_email, password_hash($admin_password, PASSWORD_DEFAULT), 1]);
         }
     }
     
@@ -306,10 +468,10 @@ class DatabaseInitializer {
         $stmt->execute(['Alice']);
         $count = $stmt->fetchColumn();
         
-        if ($count == 0) {
-            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, reputation_score, badges) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute(['Alice', 'alice@example.com', password_hash('demo123', PASSWORD_DEFAULT), 12.5, json_encode(['starter','contributor'])]);
-        }
+	        if ($count == 0) {
+	            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password) VALUES (?, ?, ?)");
+	            $stmt->execute(['Alice', 'alice@example.com', password_hash('demo123', PASSWORD_DEFAULT)]);
+	        }
     }
 
     private function insertSampleUser2() {
@@ -317,10 +479,10 @@ class DatabaseInitializer {
         $stmt->execute(['Bob']);
         $count = $stmt->fetchColumn();
         
-        if ($count == 0) {
-            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, reputation_score, badges) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute(['Bob', 'bob@example.com', password_hash('demo123', PASSWORD_DEFAULT), 12.5, json_encode(['starter','contributor'])]);
-        }
+	        if ($count == 0) {
+	            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password) VALUES (?, ?, ?)");
+	            $stmt->execute(['Bob', 'bob@example.com', password_hash('demo123', PASSWORD_DEFAULT)]);
+	        }
     }
 
     private function insertSampleUser3() {
@@ -328,10 +490,10 @@ class DatabaseInitializer {
         $stmt->execute(['Charlie']);
         $count = $stmt->fetchColumn();
         
-        if ($count == 0) {
-            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, reputation_score, badges) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute(['Charlie', 'charlie@example.com', password_hash('demo123', PASSWORD_DEFAULT), 12.5, json_encode(['starter','contributor'])]);
-        }
+	        if ($count == 0) {
+	            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password) VALUES (?, ?, ?)");
+	            $stmt->execute(['Charlie', 'charlie@example.com', password_hash('demo123', PASSWORD_DEFAULT)]);
+	        }
     }
 
     private function insertSampleUser4() {
@@ -339,17 +501,17 @@ class DatabaseInitializer {
         $stmt->execute(['Diana']);
         $count = $stmt->fetchColumn();
         
-        if ($count == 0) {
-            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password, reputation_score, badges) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute(['Diana', 'diana@example.com', password_hash('demo123', PASSWORD_DEFAULT), 12.5, json_encode(['starter','contributor'])]);
-        }
+	        if ($count == 0) {
+	            $stmt = $this->pdo->prepare("INSERT INTO t_users (username, email, password) VALUES (?, ?, ?)");
+	            $stmt->execute(['Diana', 'diana@example.com', password_hash('demo123', PASSWORD_DEFAULT)]);
+	        }
     }
 
     private function insertSampleMessages() {
         $count = $this->pdo->query("SELECT COUNT(*) FROM t_messages")->fetchColumn();
         if ($count == 0) {
             $stmt = $this->pdo->prepare("INSERT INTO t_messages (col_content) VALUES (?)");
-            $stmt->execute(['欢迎使用本地原型！这是一个示例消息，您可以通过界面添加/编辑/删除消息。Welcome to use the local prototype! This is a sample message. You can add/edit/delete messages through the interface.']);
+            $stmt->execute(['欢迎使用测试原型！该网站由西交利物浦大学学生创作，这暂时是一个教育用途的原型————至少目前是这样。这是一个示例消息，您可以通过界面添加/编辑/删除消息。Welcome to use the test prototype! This website is created by students of Xi\'an Jiaotong Liverpool University, and it is currently a prototype for educational purposes. This is a sample message. You can add/edit/delete messages through the interface.']);
             $stmt->execute(['试试在"发布"中上传一张 PNG 图片，或创建一个项目来体验完整流程。Try uploading a PNG image in "Publish", or create a project to experience the full process.']);
         }
     }

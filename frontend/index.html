@@ -8,8 +8,43 @@
     <link rel="stylesheet" href="./assets/css/index.css">
 </head>
 <body>
-    <!-- Header with Three Navigation Rows -->
-    <header class="header-nav">
+    <!-- Hamburger Menu Button -->
+    <button id="hamburger-btn" class="hamburger-btn" onclick="toggleSidebar()" style="position:fixed;top:16px;left:16px;z-index:10001;background:#667eea;border:none;padding:10px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:44px;height:44px;">
+        <img src="./assets/images/hamburger-icon.png" alt="Menu" style="width:24px;height:24px;">
+    </button>
+    
+    <!-- Sidebar Navigation -->
+    <div id="sidebar-nav" class="sidebar-nav" style="position:fixed;top:0;left:-300px;width:280px;height:100%;background:white;box-shadow:2px 0 10px rgba(0,0,0,0.1);z-index:10000;transition:left 0.3s ease;overflow-y:auto;">
+        <div style="padding:20px;">
+            <h3 style="margin:0 0 20px 0;color:#667eea;">导航 Navigation</h3>
+            <div class="sidebar-section">
+                <h4 style="margin:12px 0 8px 0;color:#666;font-size:13px;text-transform:uppercase;">主导航 Main</h4>
+                <button class="sidebar-nav-btn" onclick="switchTab('home');closeSidebar();" data-i18n="home">Home</button>
+                <button class="sidebar-nav-btn" onclick="switchTab('plaza');closeSidebar();" data-i18n="plaza">Plaza</button>
+                <button class="sidebar-nav-btn" onclick="switchTab('messages');closeSidebar();" data-i18n="messages">Messages</button>
+                <button class="sidebar-nav-btn" onclick="switchTab('profile');closeSidebar();" data-i18n="profile">Profile</button>
+            </div>
+            <div class="sidebar-section" style="margin-top:20px;">
+                <h4 style="margin:12px 0 8px 0;color:#666;font-size:13px;text-transform:uppercase;">功能 Features</h4>
+                <button class="sidebar-nav-btn" onclick="switchTab('taskmarket');closeSidebar();" data-i18n="taskMarket">TaskMarket</button>
+                <button class="sidebar-nav-btn" onclick="switchTab('project');closeSidebar();" data-i18n="project">Project</button>
+                <button class="sidebar-nav-btn" onclick="switchTab('matching');closeSidebar();" data-i18n="matching">Matching</button>
+                <button class="sidebar-nav-btn" onclick="switchTab('workbench');closeSidebar();" data-i18n="workBench">WorkBench</button>
+            </div>
+            <div class="sidebar-section" style="margin-top:20px;">
+                <h4 style="margin:12px 0 8px 0;color:#666;font-size:13px;text-transform:uppercase;">设置 Settings</h4>
+                <button class="sidebar-nav-btn" onclick="switchRole();closeSidebar();" data-i18n="switchRole">Switch Role</button>
+                <button class="sidebar-nav-btn" onclick="toggleLanguage();closeSidebar();" id="sidebar-lang-btn">中文</button>
+                <button class="sidebar-nav-btn" onclick="logout();closeSidebar();" data-i18n="logout" style="background:#fee;border-color:#fcc;color:#c33;">Logout</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:none;"></div>
+    
+    <!-- Header with Three Navigation Rows (Hidden by default on mobile) -->
+    <header class="header-nav" style="margin-left:0;">
         <!-- Row 1: User Actions -->
         <div class="nav-row-user">
             <div class="user-info" style="display:flex;align-items:center;gap:10px;">
@@ -109,9 +144,13 @@
         <!-- Messages Tab -->
         <div id="messages" class="tab-content">
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                     <h2 data-i18n="messagesTitle">Messages</h2>
-                    <button class="btn btn-primary" onclick="openMessageModal()" data-i18n="addNewMessage">Add New Message</button>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                        <label for="messageDomainSelect" data-i18n="domainFilter" style="font-size:0.85rem;color:#555;">Domains</label>
+                        <select id="messageDomainSelect" style="padding:8px 12px;border:1px solid #ccc;border-radius:6px;min-width:160px;"></select>
+                        <button class="btn btn-primary" onclick="openMessageModal()" data-i18n="addNewMessage">Add New Message</button>
+                    </div>
                 </div>
                 <div id="messages-list" class="loading" data-i18n="loadingMessages">Loading messages...</div>
             </div>
@@ -130,21 +169,21 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 data-i18n="taskMarketTitle">Task Market</h2>
-                    <button class="btn btn-primary" onclick="openCreateProjectModal()" data-i18n="createProject">Create Project</button>
-                </div>
-                <div id="projects-list" class="loading" data-i18n="loading">Loading...</div>
-            </div>
+            <button class="btn btn-primary" onclick="openCreateProjectModal()" data-i18n="createProject">Create Project</button>
         </div>
-        
-        <!-- Project Details Tab -->
-        <div id="project" class="tab-content">
-            <div class="card">
-                <h2 data-i18n="projectDetailsTitle">Project Details</h2>
-                <div id="project-details" class="loading" data-i18n="loading">Loading...</div>
-            </div>
+        <div class="responsive-wrapper">
+            <div id="projects-list" class="loading" data-i18n="loading">Loading...</div>
         </div>
-        
-        <!-- Matching Tab -->
+    </div>
+</div>        <!-- Project Details Tab -->
+<div id="project" class="tab-content">
+    <div class="card">
+        <h2 data-i18n="projectDetailsTitle">Project Details</h2>
+        <div class="responsive-wrapper">
+            <div id="project-details" class="loading" data-i18n="loading">Loading...</div>
+        </div>
+    </div>
+</div>        <!-- Matching Tab -->
         <div id="matching" class="tab-content">
             <div class="card">
                 <h2 data-i18n="matchingTitle">Creator Matching</h2>
@@ -203,8 +242,8 @@
                             </div>
                         </div>
                         
-                        <!-- 聊天区域 -->
-                        <div id="workbench-chat-section">
+                        <!-- 聊天区域（隐藏，使用弹窗代替） -->
+                        <div id="workbench-chat-section" style="display:none;">
                             <h3 data-i18n="projectChat">Project Chat</h3>
                             <div id="workbench-messages" style="max-height:400px;overflow-y:auto;margin-bottom:16px;padding:16px;background:#f9f9f9;border-radius:8px;"></div>
                             <div style="display:flex;gap:8px;">
@@ -217,6 +256,28 @@
             </div>
         </div>
     </div>
+    
+    <!-- Chat Modal (for WorkBench) -->
+    <div id="chat-modal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width:600px;max-height:80vh;display:flex;flex-direction:column;">
+            <div class="modal-header">
+                <h3 data-i18n="projectChat">Project Chat</h3>
+                <button class="modal-close" onclick="closeChatModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="flex:1;overflow-y:auto;">
+                <div id="chat-messages" style="min-height:300px;max-height:400px;overflow-y:auto;margin-bottom:16px;padding:16px;background:#f9f9f9;border-radius:8px;"></div>
+                <div style="display:flex;gap:8px;">
+                    <input type="text" id="chat-message-input" placeholder="Type your message..." data-i18n-placeholder="typeMessage" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:6px;">
+                    <button class="btn btn-primary" onclick="sendChatMessage()" data-i18n="send">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Button (for WorkBench) -->
+    <button id="chat-btn" class="chat-btn" onclick="openChatModal()" style="display:none;position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;background:#667eea;border:none;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;z-index:1000;align-items:center;justify-content:center;">
+        <img src="./assets/images/chat-icon.png" alt="Chat" style="width:32px;height:32px;display:block;margin:auto;">
+    </button>
     
     <!-- Activity Modal -->
     <div id="activityModal" class="modal">
@@ -255,6 +316,10 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
+                    <label data-i18n="messageCategory">Category</label>
+                    <select id="messageCategory" style="padding:10px;border:1px solid #ddd;border-radius:6px;width:100%;"></select>
+                </div>
+                <div class="form-group">
                     <label data-i18n="messageContent">Message Content</label>
                     <textarea id="messageContent" placeholder="Enter your message..."></textarea>
                 </div>
@@ -289,6 +354,21 @@
                 <div class="form-group">
                     <label data-i18n="tags">Skills Required</label>
                     <input type="text" id="projectSkills" placeholder="e.g., Illustration, 3D Modeling">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="timeLimit">Time Limit (days)</label>
+                    <input type="number" id="projectTimeLimit" placeholder="Enter time limit in days..." value="30">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="projectParts">Project Parts (max 9)</label>
+                    <div id="project-parts-container">
+                        <div class="project-part-item" style="display:flex;gap:8px;margin-bottom:8px;">
+                            <input type="text" placeholder="Part 1 title" class="part-title" style="flex:2;">
+                            <input type="number" placeholder="%" class="part-percentage" style="flex:1;" min="0" max="100">
+                            <button type="button" class="btn btn-danger btn-small" onclick="removePartItem(this)" style="flex:0;">&times;</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-small" onclick="addPartItem()" style="margin-top:8px;">+ Add Part</button>
                 </div>
                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
                     <button class="btn btn-secondary" onclick="closeCreateProjectModal()" data-i18n="cancel">Cancel</button>

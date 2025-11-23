@@ -15,10 +15,15 @@
             <p id="authSubtitle">Co-Creation Workshop</p>
             <button class="btn btn-secondary btn-small" onclick="toggleLanguage()" id="langToggleBtn">中文</button>
         </div>
+        
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="showLogin()" id="loginTab">Sign In</button>
+            <button class="auth-tab" onclick="showRegister()" id="registerTab">Sign Up</button>
+        </div>
 
         <div class="auth-form-wrapper">
             <!-- Login Form -->
-            <form id="login-form" class="form-section active">
+            <form id="login-form" class="auth-card active">
                 <h2 id="loginHeader">Sign In</h2>
                 <div class="success" id="loginSuccess"></div>
                 <div class="error" id="loginError"></div>
@@ -41,7 +46,7 @@
             </form>
             
             <!-- Register Form -->
-            <form id="register-form" class="form-section">
+            <form id="register-form" class="auth-card">
                 <h2 id="registerHeader">Sign Up</h2>
                 <div class="success" id="registerSuccess"></div>
                 <div class="error" id="registerError"></div>

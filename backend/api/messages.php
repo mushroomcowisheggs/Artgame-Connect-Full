@@ -15,7 +15,13 @@ class MessagesAPI {
      * 获取所有消息
      */
     public function getMessages() {
-        $stmt = $this->pdo->query("SELECT col_id as id, col_content as content, col_created_at as createdAt, col_author as author, col_author_id as author_id FROM t_messages ORDER BY col_id DESC");
+        $category = isset($_GET['category']) ? trim($_GET['category']) : '';
+        if ($category && $category !== 'all') {
+            $stmt = $this->pdo->prepare("SELECT col_id as id, col_content as content, col_created_at as createdAt, col_author as author, col_author_id as author_id, col_category as category FROM t_messages WHERE col_category = ? ORDER BY col_id DESC");
+            $stmt->execute([$category]);
+        } else {
+            $stmt = $this->pdo->query("SELECT col_id as id, col_content as content, col_created_at as createdAt, col_author as author, col_author_id as author_id, col_category as category FROM t_messages ORDER BY col_id DESC");
+        }
         $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return ['code' => 200, 'messages' => $messages];
     }
@@ -32,8 +38,9 @@ class MessagesAPI {
         $author = $_SESSION['username'] ?? trim($data['col_author'] ?? ($data['author'] ?? '匿名Anonymous'));
         $authorId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
         
-        $stmt = $this->pdo->prepare("INSERT INTO t_messages (col_content, col_author, col_author_id) VALUES (?, ?, ?)");
-        $stmt->execute([$content, $author, $authorId]);
+        $category = trim($data['category'] ?? $data['col_category'] ?? 'general');
+        $stmt = $this->pdo->prepare("INSERT INTO t_messages (col_content, col_author, col_author_id, col_category) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$content, $author, $authorId, $category]);
         
         return ['code' => 200, 'message' => '添加成功 Added successfully'];
     }
@@ -79,8 +86,9 @@ class MessagesAPI {
             throw new Exception('消息不存在 The message does not exist.');
         }
         
-        // 只允许作者删除
-        if (empty($row['col_author_id']) || (int)$row['col_author_id'] !== (int)$sessionUserId) {
+        // 管理员或作者可以删除
+        $isAdmin = $_SESSION['is_admin'] ?? 0;
+        if (!$isAdmin && (empty($row['col_author_id']) || (int)$row['col_author_id'] !== (int)$sessionUserId)) {
             throw new Exception('没有权限删除该消息 No permission to delete this message');
         }
         

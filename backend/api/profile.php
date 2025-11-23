@@ -272,4 +272,84 @@ class ProfileAPI {
         
         return ['code' => 200, 'message' => '评价提交成功 Review submitted successfully'];
     }
+    
+    /**
+     * 获取个人项目列表
+     */
+    public function getPersonalProjects() {
+        $userId = $_SESSION['user_id'] ?? null;
+        
+        if (!$userId) {
+            throw new Exception('未登录 Not logged in');
+        }
+        
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM t_personal_projects 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC
+        ");
+        $stmt->execute([$userId]);
+        $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        return ['code' => 200, 'projects' => $projects];
+    }
+    
+    /**
+     * 添加个人项目
+     */
+    public function addPersonalProject($data) {
+        $userId = $_SESSION['user_id'] ?? null;
+        
+        if (!$userId) {
+            throw new Exception('未登录 Not logged in');
+        }
+        
+        $title = trim($data['title'] ?? '');
+        $description = trim($data['description'] ?? '');
+        $image = trim($data['image'] ?? '');
+        $link = trim($data['link'] ?? '');
+        
+        if (empty($title)) {
+            throw new Exception('项目标题不能为空 Project title cannot be empty');
+        }
+        
+        $stmt = $this->pdo->prepare("
+            INSERT INTO t_personal_projects (user_id, title, description, image, link) 
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([$userId, $title, $description, $image, $link]);
+        
+        return ['code' => 200, 'message' => '个人项目添加成功 Personal project added successfully'];
+    }
+    
+    /**
+     * 删除个人项目
+     */
+    public function deletePersonalProject($data) {
+        $userId = $_SESSION['user_id'] ?? null;
+        
+        if (!$userId) {
+            throw new Exception('未登录 Not logged in');
+        }
+        
+        $projectId = intval($data['project_id'] ?? 0);
+        
+        if ($projectId <= 0) {
+            throw new Exception('无效的项目ID Invalid project ID');
+        }
+        
+        // 验证项目所有权
+        $stmt = $this->pdo->prepare("SELECT user_id FROM t_personal_projects WHERE id = ?");
+        $stmt->execute([$projectId]);
+        $project = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$project || $project['user_id'] != $userId) {
+            throw new Exception('无权删除此项目 No permission to delete this project');
+        }
+        
+        $stmt = $this->pdo->prepare("DELETE FROM t_personal_projects WHERE id = ?");
+        $stmt->execute([$projectId]);
+        
+        return ['code' => 200, 'message' => '个人项目删除成功 Personal project deleted successfully'];
+    }
 }

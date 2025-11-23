@@ -1,14 +1,28 @@
-
 // 切换登录/注册界面
 function showLogin() {
     document.getElementById('login-form').classList.add('active');
     document.getElementById('register-form').classList.remove('active');
+    document.getElementById('loginTab').classList.add('active');
+    document.getElementById('registerTab').classList.remove('active');
 }
 
 function showRegister() {
     document.getElementById('login-form').classList.remove('active');
     document.getElementById('register-form').classList.add('active');
+    document.getElementById('loginTab').classList.remove('active');
+    document.getElementById('registerTab').classList.add('active');
 }
+
+// 初始化标签页事件
+document.getElementById('loginTab').addEventListener('click', function(e) {
+    e.preventDefault();
+    showLogin();
+});
+
+document.getElementById('registerTab').addEventListener('click', function(e) {
+    e.preventDefault();
+    showRegister();
+});
 
 // 登录表单处理
 document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -86,4 +100,3 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         showError('registerError', getTranslation('error') + ': ' + error.message);
     }
 });
-

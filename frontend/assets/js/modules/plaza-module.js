@@ -25,6 +25,8 @@ async function loadFeed() {
             data.feed.forEach(activity => {
                 const likedClass = activity.is_liked ? 'liked' : '';
                 const likeIcon = activity.is_liked ? '❤️' : '🤍';
+                // 检查是否为管理员或作者
+                const canDelete = user.is_admin == 1 || activity.author_id === user.id;
                 html += `
                     <div class="activity-card">
                         <div class="activity-header" style="display:flex;justify-content:space-between;align-items:center;">
@@ -32,7 +34,7 @@ async function loadFeed() {
                                 <span class="activity-author">${escapeHtml(activity.author || 'Anonymous')}</span>
                                 <span class="activity-time" style="margin-left:12px;">${new Date(activity.createdAt).toLocaleString()}</span>
                             </div>
-                            ${activity.author_id === user.id ? `<button class="btn btn-secondary btn-small" onclick="deleteActivity(${activity.id})" style="padding:4px 8px;font-size:0.8rem;">× Delete</button>` : ''}
+                            ${canDelete ? `<button class="btn btn-secondary btn-small" onclick="deleteActivity(${activity.id})" style="padding:4px 8px;font-size:0.8rem;">× Delete</button>` : ''}
                         </div>
                         ${activity.title ? `<div class="activity-title">${escapeHtml(activity.title)}</div>` : ''}
                         <div class="activity-content">${escapeHtml(activity.content)}</div>
@@ -115,12 +117,18 @@ async function loadComments(activityId) {
                 return;
             }
             
+            const user = getCurrentUser();
             let html = '';
             data.comments.forEach(comment => {
+                // 检查是否为管理员或评论作者
+                const canDelete = user.is_admin == 1 || comment.user_id === user.id;
                 html += `
-                    <div class="comment-item">
-                        <div class="comment-author">${escapeHtml(comment.username || 'Anonymous')}</div>
-                        <div class="comment-content">${escapeHtml(comment.content)}</div>
+                    <div class="comment-item" style="display:flex;justify-content:space-between;align-items:center;">
+                        <div style="flex:1;">
+                            <div class="comment-author">${escapeHtml(comment.username || 'Anonymous')}</div>
+                            <div class="comment-content">${escapeHtml(comment.content)}</div>
+                        </div>
+                        ${canDelete ? `<button class="btn btn-secondary btn-small" onclick="deleteComment(${comment.id}, ${activityId})" style="padding:2px 6px;font-size:0.75rem;">×</button>` : ''}
                     </div>
                 `;
             });
@@ -240,6 +248,32 @@ async function deleteActivity(activityId) {
         if (data.code === 200) {
             loadFeed();
             alert('Activity deleted');
+        } else {
+            alert(data.message);
+        }
+    } catch (err) {
+        alert(t('error'));
+    }
+}
+
+/**
+ * 删除评论
+ */
+async function deleteComment(commentId, activityId) {
+    if (!confirm('Are you sure you want to delete this comment?')) return;
+    
+    try {
+        const res = await fetch('../backend/api/api.php?action=delete_comment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comment_id: commentId })
+        });
+        const data = await res.json();
+        
+        if (data.code === 200) {
+            await loadComments(activityId);
+            loadFeed(); // 重新加载以更新评论数
+            alert('Comment deleted');
         } else {
             alert(data.message);
         }

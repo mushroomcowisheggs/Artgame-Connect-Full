@@ -64,8 +64,34 @@ class ActivitiesAPI {
         
         $stmt = $this->pdo->prepare("INSERT INTO t_activities (type, title, content, image, author, author_id) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$type, $title, $content, $image, $author, $authorId]);
+        $activityId = $this->pdo->lastInsertId();
         
-        return ['code' => 200, 'message' => '发布成功 Published successfully'];
+        // 检查是否需要自动点赞（仅第一条帖子）
+        if ($authorId) {
+            // 检查用户是否已经获得过自动点赞
+            $userStmt = $this->pdo->prepare("SELECT has_received_auto_like FROM t_users WHERE id = ?");
+            $userStmt->execute([$authorId]);
+            $user = $userStmt->fetch(PDO::FETCH_ASSOC);
+            
+            // 如果未获得过自动点赞，检查是否为第一条帖子
+            if ($user && !$user['has_received_auto_like']) {
+                $countStmt = $this->pdo->prepare("SELECT COUNT(*) FROM t_activities WHERE author_id = ?");
+                $countStmt->execute([$authorId]);
+                $postCount = $countStmt->fetchColumn();
+                
+                if ($postCount == 1) {
+                    // 记录自动点赞任务（2个赞）
+                    $autoLikeStmt = $this->pdo->prepare("INSERT INTO t_auto_likes (user_id, activity_id) VALUES (?, ?)");
+                    $autoLikeStmt->execute([$authorId, $activityId]);
+                    
+                    // 标记用户已获得自动点赞
+                    $updateStmt = $this->pdo->prepare("UPDATE t_users SET has_received_auto_like = 1 WHERE id = ?");
+                    $updateStmt->execute([$authorId]);
+                }
+            }
+        }
+        
+        return ['code' => 200, 'message' => '发布成功 Published successfully', 'activity_id' => $activityId];
     }
     
     /**
@@ -92,7 +118,11 @@ class ActivitiesAPI {
             throw new Exception('活动不存在 Activity not found');
         }
         
-        if ($activity['author_id'] != $userId) {
+        // 检查是否为管理员
+        $isAdmin = $_SESSION['is_admin'] ?? 0;
+        
+        // 管理员或作者本人可以删除
+        if (!$isAdmin && $activity['author_id'] != $userId) {
             throw new Exception('没有权限删除 No permission to delete');
         }
         
@@ -150,7 +180,7 @@ class ActivitiesAPI {
         }
         
         $stmt = $this->pdo->prepare("
-            SELECT c.id, c.content, c.created_at, u.username
+            SELECT c.id, c.content, c.created_at, c.user_id, u.username
             FROM t_comments c
             LEFT JOIN t_users u ON c.user_id = u.id
             WHERE c.activity_id = ?
@@ -186,5 +216,43 @@ class ActivitiesAPI {
         $stmt->execute([$activityId, $userId, $content]);
         
         return ['code' => 200, 'message' => '评论成功 Comment added'];
+    }
+    
+    /**
+     * 删除评论
+     */
+    public function deleteComment($data) {
+        $commentId = intval($data['comment_id'] ?? 0);
+        $userId = $_SESSION['user_id'] ?? null;
+        
+        if (!$userId) {
+            throw new Exception('未登录 Not logged in');
+        }
+        
+        if ($commentId <= 0) {
+            throw new Exception('无效的评论ID Invalid comment ID');
+        }
+        
+        // 检查权限
+        $stmt = $this->pdo->prepare("SELECT user_id FROM t_comments WHERE id = ?");
+        $stmt->execute([$commentId]);
+        $comment = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$comment) {
+            throw new Exception('评论不存在 Comment not found');
+        }
+        
+        // 检查是否为管理员
+        $isAdmin = $_SESSION['is_admin'] ?? 0;
+        
+        // 管理员或评论作者本人可以删除
+        if (!$isAdmin && $comment['user_id'] != $userId) {
+            throw new Exception('没有权限删除 No permission to delete');
+        }
+        
+        // 删除评论
+        $this->pdo->prepare("DELETE FROM t_comments WHERE id = ?")->execute([$commentId]);
+        
+        return ['code' => 200, 'message' => '删除成功 Deleted successfully'];
     }
 }

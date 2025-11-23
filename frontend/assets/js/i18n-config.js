@@ -60,6 +60,19 @@ const translations = {
         addNewMessage: "Add New Message",
         messageContent: "Message Content",
         postMessage: "Post Message",
+        messageCategory: "Category",
+        domainFilter: "Domains",
+        category_general: "General",
+        category_painting: "Painting",
+        category_music: "Music",
+        category_writing: "Writing",
+        category_programming: "Programming",
+        category_photography: "Photography",
+        category_modeling: "Modeling",
+        category_animation: "Animation",
+        category_sound: "Sound Effects",
+        category_management: "Management",
+        category_design: "Design",
         
         // Profile
         profileTitle: "Profile",
@@ -182,6 +195,10 @@ const translations = {
         timelinessRating: "Timeliness",
         pleaseSelectRating: "Please select an overall rating",
         pleaseSelectProject: "Please select a project first",
+        dailyUploadLimitReached: "Daily upload limit reached (10 files)",
+        fileTooLarge: "File exceeds size limit (20MB)",
+        uploadFailed: "Upload failed",
+        preview: "Preview",
         
         // Common
         loading: "Loading...",
@@ -206,7 +223,21 @@ const translations = {
         roleSwitched: "Role switched successfully",
         projectWithdrawn: "Project withdrawn successfully",
         completionConfirmed: "Completion confirmed successfully",
-        reviewSubmitted: "Review submitted successfully"
+        reviewSubmitted: "Review submitted successfully",
+        withdrawProject: "Withdraw Project",
+        projectProgress: "Project Progress",
+        milestoneProgress: "Milestone Progress",
+        timeProgress: "Time Progress",
+        partsProgress: "Parts Progress",
+        createdAt: "Created At",
+        timeLimit: "Time Limit",
+        projectInfo: "Project Info",
+        description: "Description",
+        parts: "Parts",
+        noMilestonesConfigured: "No milestones or parts configured",
+        personalProjects: "Personal Projects",
+        noPersonalProjects: "No personal projects yet",
+        addPersonalProject: "Add Personal Project"
     },
     zh: {
         // Header
@@ -268,6 +299,19 @@ const translations = {
         addNewMessage: "添加新留言",
         messageContent: "留言内容",
         postMessage: "发布留言",
+        messageCategory: "创作领域",
+        domainFilter: "领域分类",
+        category_general: "通用",
+        category_painting: "绘画",
+        category_music: "音乐",
+        category_writing: "写作",
+        category_programming: "编程",
+        category_photography: "摄影",
+        category_modeling: "建模",
+        category_animation: "动效",
+        category_sound: "音效",
+        category_management: "管理",
+        category_design: "设计",
         
         // Profile
         profileTitle: "个人中心",
@@ -390,6 +434,10 @@ const translations = {
         timelinessRating: "时效评分",
         pleaseSelectRating: "请选择总体评分",
         pleaseSelectProject: "请先选择一个项目",
+        dailyUploadLimitReached: "已达到今日上传数量限制（10个文件）",
+        fileTooLarge: "文件超过大小限制（20MB）",
+        uploadFailed: "上传失败",
+        preview: "预览",
         
         // Common
         loading: "加载中...",
@@ -414,7 +462,21 @@ const translations = {
         roleSwitched: "角色切换成功",
         projectWithdrawn: "项目撤回成功",
         completionConfirmed: "完成确认成功",
-        reviewSubmitted: "评价提交成功"
+        reviewSubmitted: "评价提交成功",
+        withdrawProject: "撤回项目",
+        projectProgress: "项目进展",
+        milestoneProgress: "里程碑进度",
+        timeProgress: "时间进度",
+        partsProgress: "步骤进度",
+        createdAt: "创建时间",
+        timeLimit: "时间限制",
+        projectInfo: "项目信息",
+        description: "项目描述",
+        parts: "步骤",
+        noMilestonesConfigured: "暂无里程碑或步骤",
+        personalProjects: "个人项目",
+        noPersonalProjects: "暂无个人项目",
+        addPersonalProject: "添加个人项目"
     }
 };
 
