@@ -71,7 +71,7 @@ Artgame Connect 是一个连接创作者与需求方的协作创作平台。本�
 4. 开发环境快速启动（仅用于本地测试）：
 
 ```powershell
-cd {Your Path}\Artgame-Connect-v14
+cd {你的路径}\Artgame-Connect-v14
 php -S localhost:8000 -t .
 ```
 
