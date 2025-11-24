@@ -25,7 +25,7 @@ Quick development setup
 4. For a quick local server (development only) you can run:
 
 ```powershell
-cd e:\xjtlu\ENT207TC\Artgame-Connect-v14
+cd {Your Path}\Artgame-Connect-v14
 php -S localhost:8000 -t .
 ```
 
@@ -71,7 +71,7 @@ Artgame Connect 是一个连接创作者与需求方的协作创作平台。本�
 4. 开发环境快速启动（仅用于本地测试）：
 
 ```powershell
-cd e:\xjtlu\ENT207TC\Artgame-Connect-v14
+cd {Your Path}\Artgame-Connect-v14
 php -S localhost:8000 -t .
 ```
 
