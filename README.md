@@ -44,7 +44,20 @@ Where to look next
 - Frontend entry: `frontend/index.html` and `frontend/assets/js/`
 - Backend/API: `api/` and `classes/`
 
-Would you like me to create a `docker-compose.yml` or a simple dev script to run both services locally?
+Platform purpose — solving common pain points
+
+- Matching: The platform is designed to make finding the right collaborators easy. A strong community layer (follow/feeds, thematic forums, curated groups and a reputation/badge system) helps creators and requesters discover and match with complementary skills. Recommendation algorithms and reputation filters reduce time spent searching and raise match quality.
+
+- Follow-up & tracking: The Workbench organizes projects into boards, tasks, milestones and deliverables, making scope and progress explicit. Each project keeps an activity log, file attachments, and status updates so teams can follow progress, assign responsibility, and resume work with clear context.
+
+- Communication: Task publishers(requesters) are encouraged to provide structured task descriptions (scope, deliverables, acceptance criteria, timeline, reference files). Templates and mandatory fields reduce ambiguity, while threaded comments and requirement checklists keep discussions and decisions attached to the task.
+
+- Other pain points addressed (secondary):
+	- Trust & quality: reputation badges, multi-dimensional reviewer feedback, and algorithmic prioritization of high-reputation creators.
+	- Payments & risk: support for escrow-like workflows or milestone-based payment to protect both sides.
+	- Onboarding & reuse: templates, examples and multi-language support to lower the barrier for international collaboration.
+
+
 
 中文（简体）
 ----------------
@@ -88,3 +101,16 @@ php -S localhost:8000 -t .
 下一步探索
 - 前端入口：`frontend/index.html`，以及 `frontend/assets/js/`
 - 后端/API：`api/` 与 `classes/`
+
+平台目的——解决常见的痛点
+
+-匹配：该平台旨在轻松找到合适的合作者。一个强大的社区层（关注/订阅，主题论坛，策划小组和声誉/徽章系统）可以帮助创造者和请求者发现并匹配互补的技能。推荐算法和声誉过滤器减少了搜索时间，提高了匹配质量。
+
+-跟进和跟踪：工作台将项目组织成板块、任务、里程碑和可交付成果，明确范围和进度。每个项目都保留一个活动日志、文件附件和状态更新，以便团队可以跟踪进度、分配责任，并在清晰的背景下继续工作。
+
+-沟通：鼓励任务发布者（需求方）提供结构化的任务描述（范围、可交付成果、验收标准、时间线、参考文件）。模板和强制字段减少了歧义，而线程注释和需求检查表将讨论和决策附加到任务上。
+
+-解决其他痛点（次要）：
+-信任和质量：声誉徽章，多维度评论反馈，以及高声誉创作者的算法优先级。
+-支付和风险：支持类似托管的工作流程或基于里程碑的支付，以保护双方。
+-入职和重用：模板，示例和多语言支持，以降低国际协作的障碍。
