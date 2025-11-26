@@ -10,7 +10,7 @@ Project layout (important folders)
 - `backend/` - backend helpers and server-side code
 - `classes/` - PHP helper classes (e.g. `DatabaseInitializer.php`, `FileUploader.php`)
 - `config/` - configuration files (`database.php`, `admin_account.env`)
-- `database/` - SQL dumps or DB migration files (if present)
+- `database/` - SQLite database files
 - `frontend/` - static client (HTML/CSS/JS) served to users
 
 Requirements
@@ -65,7 +65,7 @@ Artgame Connect 是一个连接创作者与需求方的协作创作平台。本�
 - `backend/` - 后端代码
 - `classes/` - PHP 工具类（例如 `DatabaseInitializer.php`, `FileUploader.php`）
 - `config/` - 配置文件（`database.php`, `admin_account.env`）
-- `database/` - 数据库文件
+- `database/` - SQLite 数据库文件
 - `frontend/` - 客户端静态文件（HTML/CSS/JS）
 
 运行与开发环境要求
@@ -74,7 +74,7 @@ Artgame Connect 是一个连接创作者与需求方的协作创作平台。本�
 
 快速开发步骤
 1. 编辑 `config/database.php` 填写数据库信息（host、name、user、password）。
-2. 创建数据库并导入 `database/` 下的 SQL 文件（如果提供）。
+2. 创建数据库并导入 `database/` 下的 SQL 文件。
 3. 确保上传目录（如 `frontend/assets/uploads`）对 Web 服务器/PHP 进程可写。
 4. 开发环境快速启动（仅用于本地测试）：
 
