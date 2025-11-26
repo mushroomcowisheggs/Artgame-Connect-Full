@@ -15,12 +15,11 @@ Project layout (important folders)
 
 Requirements
 - PHP 7.4+ (or compatible PHP runtime)
-- MySQL / MariaDB (or compatible RDBMS)
-- A web server (Apache, Nginx) or the PHP built-in server for development
+- A web server or the PHP built-in server for development
 
 Quick development setup
 1. Configure DB credentials: edit `config/database.php` with your database host, name, user, and password.
-2. Create the database and import SQL files from `database/` if provided.
+2. Create the database and import SQL files from `database/`.
 3. Ensure any upload directories (e.g. `frontend/assets/uploads`) are writable by the webserver/PHP process.
 4. For a quick local server (development only) you can run:
 
@@ -29,7 +28,7 @@ cd {Your Path}\Artgame-Connect-v14
 php -S localhost:8000 -t .
 ```
 
-Then open `http://localhost:8000/frontend/index.html` or configure your web server to serve the project root.
+Then open `http://localhost:8000/frontend/index.html` or configure your web server to serve the project root. (You can replace 8000 with any free port.)
 
 Notes and tips
 - API endpoints are under `api/`. Secure `config/` files for production (do not commit credentials).
@@ -40,9 +39,6 @@ Known issues (short)
 - `frontend/assets/js/lang.js`: English translation key `errorSearchingCreators` has a wrong value (copy/paste). This may display an incorrect message for that error.
 - `toggleLanguage()` in `lang.js` references `currentProject` and calls `loadWorkbench(currentProject)`; ensure `currentProject` is defined in the global scope before use.
 
-Where to look next
-- Frontend entry: `frontend/index.html` and `frontend/assets/js/`
-- Backend/API: `api/` and `classes/`
 
 Platform purpose — solving common pain points
 
@@ -69,13 +65,12 @@ Artgame Connect 是一个连接创作者与需求方的协作创作平台。本�
 - `backend/` - 后端代码
 - `classes/` - PHP 工具类（例如 `DatabaseInitializer.php`, `FileUploader.php`）
 - `config/` - 配置文件（`database.php`, `admin_account.env`）
-- `database/` - 数据库导出/迁移文件（如存在）
+- `database/` - 数据库文件
 - `frontend/` - 客户端静态文件（HTML/CSS/JS）
 
 运行与开发环境要求
 - PHP 7.4+
-- MySQL / MariaDB
-- Web 服务器（Apache、Nginx），或用于开发的 PHP 内置服务器
+- Web 服务器，或用于开发的 PHP 内置服务器
 
 快速开发步骤
 1. 编辑 `config/database.php` 填写数据库信息（host、name、user、password）。
@@ -88,7 +83,7 @@ cd {你的路径}\Artgame-Connect-v14
 php -S localhost:8000 -t .
 ```
 
-然后打开 `http://localhost:8000/frontend/index.html`。
+然后打开 `http://localhost:8000/frontend/index.html`。（或者将8000替换为你的其它空闲端口）
 
 注意事项
 - API 接口位于 `api/`，请在生产环境中保护 `config/` 配置，不要在版本控制中泄露凭据。
@@ -98,9 +93,6 @@ php -S localhost:8000 -t .
 - `frontend/assets/js/lang.js`：英文翻译键 `errorSearchingCreators` 的值被误设为另一个键名，可能导致错误信息显示不正确。
 - `toggleLanguage()` 调用 `loadWorkbench(currentProject)`，请确保全局存在 `currentProject` 变量以避免运行时报错。
 
-下一步探索
-- 前端入口：`frontend/index.html`，以及 `frontend/assets/js/`
-- 后端/API：`api/` 与 `classes/`
 
 平台目的——解决常见的痛点
 
