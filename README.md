@@ -5,6 +5,9 @@ English
 
 Artgame Connect is a collaborative creation platform that connects creators and requesters. This repository contains the full-stack version: a PHP backend (API and helper classes) plus a static frontend.
 
+Note about versions
+- This repository contains the full server (PHP) version. There is also a separate frontend-only version in `../Artgame-Connect-v14-Frontend-Only` that uses a mock backend for demos and UI work. The final user-facing effect (UI and most client behaviour) is essentially the same between the full-stack and frontend-only versions; the frontend-only copy simply simulates the backend for local demos.
+
 Project layout (important folders)
 - `api/` - PHP API endpoints (e.g. `auth.php`, `projects.php`, `login.php`)
 - `backend/` - backend helpers and server-side code
@@ -16,6 +19,9 @@ Project layout (important folders)
 Requirements
 - PHP 7.4+ (or compatible PHP runtime)
 - A web server or the PHP built-in server for development
+
+PHP ini note
+- When using the PHP built-in server or any PHP runtime, ensure your `php.ini` is adjusted if extensions are not enabled by default: uncomment `extension_dir = "ext"` and enable the `mbstring` and `pdo_sqlite` extensions by uncommenting their `extension=` lines (for example `extension=mbstring` and `extension=pdo_sqlite`). This is required for string handling and SQLite database support on many systems.
 
 Quick development setup
 1. Configure DB credentials: edit `config/database.php` with your database host, name, user, and password.
@@ -59,6 +65,12 @@ Platform purpose — solving common pain points
 ----------------
 
 Artgame Connect 是一个连接创作者与需求方的协作创作平台。本仓库为全栈版本：包含 PHP 后端（API 与辅助类）和静态前端。
+
+版本说明
+- 本仓库为带后端的完整版本；另有一个仅前端的演示版本位于 `../Artgame-Connect-v14-Frontend-Only`，它通过模拟后端用于演示与界面开发。最终的界面与用户体验在两者之间基本一致，仅前端版本使用模拟数据以便本地演示。
+
+php.ini 注意
+- 在使用 PHP 内置服务器或其他 PHP 运行时时，如果扩展未被默认启用，请编辑 `php.ini`：取消注释 `extension_dir = "ext"`，并通过取消注释相应的 `extension=` 行启用 `mbstring` 与 `pdo_sqlite`（例如 `extension=mbstring`、`extension=pdo_sqlite`）。这些扩展通常用于字符串处理和 SQLite 支持。
 
 项目结构（主要目录）
 - `api/` - PHP API 接口（例如 `auth.php`, `projects.php`, `login.php`）
